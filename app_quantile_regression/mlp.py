@@ -1,0 +1,70 @@
+import numpy as np
+import math
+import pandas as pd
+from tqdm import tqdm
+from scipy import stats
+
+from keras.models import Sequential
+from keras.layers import Dense, LeakyReLU
+from keras.callbacks import EarlyStopping
+import keras.backend as K 
+
+def tilted_loss(q,y,f):
+    e = (y-f)
+    return K.mean(K.maximum(q*e, (q-1)*e), axis=-1)
+
+class MLPQuantile():
+    
+    def __init__(self):
+
+        self.estimators = []
+        
+    def fit(self,X_train,y_train):
+        
+        def MLPmodel():
+            model = Sequential()
+            model.add(Dense(len(X_train[0]), input_dim=len(X_train[0]), activation=LeakyReLU(alpha=0.3)))
+            model.add(Dense(int(len(X_train[0])/2), activation=LeakyReLU(alpha=0.3)))
+            model.add(Dense(int(len(X_train[0])/2), activation=LeakyReLU(alpha=0.3)))
+            model.add(Dense(1, activation='linear'))
+            return model
+        
+        print("training !")
+        for q in [0.022750131948179195,0.15865525393145707,0.5,0.8413447460685429,0.9772498680518208]:
+            print(f"Quantile: {q}")
+            model = MLPmodel()
+            model.compile(loss=lambda y,f: tilted_loss(q,y,f), optimizer='adadelta')
+            es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=50)
+            history = model.fit(X_train, y_train, 
+                                nb_epoch=1000, batch_size=500,  
+                                verbose=1,callbacks=[es],
+                                validation_split=0.1)
+            self.estimators.append(model)
+        print("Done")
+        
+    def predict(self,X):
+        predictions_gbr = []
+        print("predicting")
+        for reg in tqdm(self.estimators):
+            predictions_gbr.append(reg.predict(X))
+         
+        total_pred={}
+        for i in range(len(predictions_gbr)):
+            total_pred[i]=predictions_gbr[i][:,0]
+            
+        total_df=pd.DataFrame(total_pred)
+
+        def process_row(row):
+            v = row.values
+            dif_mean = v-v[2]
+            mu = v[2]
+            s = np.mean([-dif_mean[0]/2,-dif_mean[1],dif_mean[3],dif_mean[4]/2])
+            mi_norm = stats.norm(mu,s)
+            quant=[]
+            for quantile in np.arange(1,100)/100.0 :
+                quant.append(mi_norm.ppf(quantile))
+            return pd.Series(quant)
+ 
+        total_df = total_df.apply(process_row,axis=1)
+        
+        return total_df.values
