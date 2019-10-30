@@ -81,7 +81,7 @@ def prepare_data_from_horizon(df, horizon=12):
 #"data/dataEscAgui.csv"
 def get_data(path):
 
-    df=pd.read_csv("data/dataEscAgui.csv",sep=" ").reset_index()
+    df=pd.read_csv(path,sep=" ").reset_index()
     df=df.rename(columns={"level_0":"date","level_1":"day"})
     df["date"]=pd.to_datetime(df["date"],format="%Y-%m-%d %H:%M:%S")
     df=df.sort_values("date")
