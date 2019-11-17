@@ -60,8 +60,8 @@ for horizon in tqdm(range(1,60)):
 
     start = datetime.now().timestamp()
     qreg = QuantileKNN(n_neighbors=50)
-    qreg.fit(X_train.values,y_train.values)
-    preds = qreg.predict(X_test.values)
+    qreg.fit(X_train_std,y_train.values)
+    preds = qreg.predict(X_test_std)
     end = datetime.now().timestamp()
     results=evaluate((np.exp(preds)-1),(np.exp(y_test)-1).values)
     results["duration"]=end-start
