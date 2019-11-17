@@ -7,7 +7,7 @@ from scipy import stats
 
 from sklearn.neighbors import KNeighborsRegressor
 
-class QuantileKNN(BaseEstimator, RegressorMixin):
+class QuantileKNN():
     
     def __init__(self, n_neighbors = 50):
         self.n_neighbors = n_neighbors
