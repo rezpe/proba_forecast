@@ -38,9 +38,9 @@ class TotalLinearQuantile():
 
         def process_row(row):
             v = row.values
-            dif_mean = v-v[2]
+            dif_mean = np.abs(v-v[2])
             mu = v[2]
-            s = np.mean([-dif_mean[0]/2,-dif_mean[1],dif_mean[3],dif_mean[4]/2])
+            s = np.mean([dif_mean[0]/2,dif_mean[1],dif_mean[3],dif_mean[4]/2])
             mi_norm = stats.norm(mu,s)
             quant=[]
             for quantile in np.arange(1,100)/100.0 :
