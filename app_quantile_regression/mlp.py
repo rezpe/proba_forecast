@@ -9,6 +9,8 @@ from keras.layers import Dense, LeakyReLU
 from keras.callbacks import EarlyStopping
 import keras.backend as K 
 
+from sklearn.model_selection import train_test_split
+
 def tilted_loss(q,y,f):
     e = (y-f)
     return K.mean(K.maximum(q*e, (q-1)*e), axis=-1)
@@ -30,15 +32,18 @@ class MLPQuantile():
             return model
         
         print("training !")
+
+        X_ttrain, X_val, y_ttrain, y_val = train_test_split(X_train,y_train,test_size=.05,random_state=2020)
+
         for q in [0.022750131948179195,0.15865525393145707,0.5,0.8413447460685429,0.9772498680518208]:
             print(f"Quantile: {q}")
             model = MLPmodel()
             model.compile(loss=lambda y,f: tilted_loss(q,y,f), optimizer='adadelta')
             es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=50)
-            history = model.fit(X_train, y_train, 
+            history = model.fit(X_ttrain, y_ttrain, 
                                 nb_epoch=1000, batch_size=500,  
                                 verbose=1,callbacks=[es],
-                                validation_split=0.1)
+                                validation_data=(X_val,y_val))
             self.estimators.append(model)
         print("Done")
         
@@ -56,9 +61,9 @@ class MLPQuantile():
 
         def process_row(row):
             v = row.values
-            dif_mean = v-v[2]
+            dif_mean = np.abs(v-v[2])
             mu = v[2]
-            s = np.mean([-dif_mean[0]/2,-dif_mean[1],dif_mean[3],dif_mean[4]/2])
+            s = np.mean([dif_mean[0]/2,dif_mean[1],dif_mean[3],dif_mean[4]/2])
             mi_norm = stats.norm(mu,s)
             quant=[]
             for quantile in np.arange(1,100)/100.0 :
