@@ -2,13 +2,12 @@ import numpy as np
 import math
 import pandas as pd
 from tqdm import  tqdm
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 from numpy.fft import fft
 import datetime
 import json
 import numpy as np
 from scipy import stats
-
 
 def prepare_data_from_horizon(df, horizon=12):
     
@@ -24,7 +23,6 @@ def prepare_data_from_horizon(df, horizon=12):
     for i in sel:
         if (i>=horizon):
             df["NO2 - "+str(i)] = df["NO2"].shift(i)
-            #df["NO2d - "+str(i)] = df["NO2"].shift(i)-df["NO2"].shift(i+24)
 
     calcols = ['Calendar.Festivo.EqiNoc',
  'Calendar.Festivo.InmCns',
@@ -62,6 +60,8 @@ def prepare_data_from_horizon(df, horizon=12):
     
     X=df[list(set(df.columns)-set(['date','day',"Index","NO2","O3"]))]
     y=df["NO2"]
+    
+    """# Divide the dataset in 5 pieces 
         
     # Get the training and test data
     training_index = df[df["date"].dt.year<2017].index
@@ -74,9 +74,9 @@ def prepare_data_from_horizon(df, horizon=12):
     X_train =  X.loc[training_index]
     X_test = X.loc[test_index]
     y_train = y.loc[training_index]
-    y_test =y.loc[test_index]
+    y_test =y.loc[test_index]"""
     
-    return X_train, X_test, y_train, y_test
+    return X, y
 
 #"data/dataEscAgui.csv"
 def get_data(path):
