@@ -1,0 +1,13 @@
+tqdm
+pandas
+json
+scikit-learn
+numpy 
+scipy
+lightgbm
+mlinsights
+joblib
+multiprocessing
+xgboost
+functools
+
