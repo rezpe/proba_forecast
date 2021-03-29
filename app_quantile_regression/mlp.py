@@ -41,7 +41,7 @@ class MLPQuantile():
             model.compile(loss=lambda y,f: tilted_loss(q,y,f), optimizer='adadelta')
             es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=50)
             history = model.fit(X_ttrain, y_ttrain, 
-                                nb_epoch=1000, batch_size=500,  
+                                epochs=1000, batch_size=500,  
                                 verbose=1,callbacks=[es],
                                 validation_data=(X_val,y_val))
             self.estimators.append(model)
