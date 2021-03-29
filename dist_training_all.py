@@ -4,7 +4,7 @@ import json
 import os
 from tqdm import tqdm
 
-from all_data_preprocessing import *
+from all_data_preprocessing_update import *
 
 from app_quantile_regression.metrics import *
 from app_quantile_regression.mlp import *
@@ -14,10 +14,8 @@ from app_quantile_regression.qrf import *
 from app_quantile_regression.linear import *
 from app_quantile_regression.lgba import *
 
-"""from ngboost.ngboost import NGBoost
-from ngboost.learners import default_tree_learner
-from ngboost.scores import MLE
-from ngboost.distns import Normal"""
+from ngboost import NGBRegressor
+from ngboost.distns import Normal
 
 from recorder import *
 
@@ -27,16 +25,22 @@ from sklearn.model_selection import KFold
 
 from datetime import datetime,timedelta
 
-folder="destination_folder"
+folder="new_data_destination_folder"
 
 if not os.path.exists(folder):
     os.makedirs(folder)
 
-df = get_data("https://gist.githubusercontent.com/rezpe/ee4d91dbe1f6104f2120aa94b8e5f60c/raw/18fc2daa4f04ded39d8b81e4a4316e424dc82d43/dataEscAgui.csv")
+df = get_data("./2018_2019_data/28079008.csv")
 
 for horizon in tqdm(range(1,60)):
 
     X, y = prepare_data_from_horizon(df,horizon)
+
+    prev = open("status.txt","r").read()
+    logout = open("status.txt","w")
+    time = datetime.now()
+    logout.write(prev+f"\n{horizon}:{time}")
+    logout.close()
 
     kf = KFold(5,shuffle=True)
     for train_index, test_index in kf.split(X):
@@ -45,7 +49,7 @@ for horizon in tqdm(range(1,60)):
         test_index = X.index.values[test_index] 
         
         # Filter the test index when prediction time is 10:00
-        ten_index = df[(df["date"]-timedelta(hours=horizon)).dt.hour==10].index
+        ten_index = df[(df["DATE"]-timedelta(hours=horizon)).dt.hour==10].index
         test_index_10 = test_index[pd.Series(test_index).isin(ten_index)]
         
         # We retrieve the indexes that are related to the test indexes according to our AR model
@@ -78,10 +82,20 @@ for horizon in tqdm(range(1,60)):
 
         dif_train = y_train-lin.predict(X_train_std)
         dif_test = y_test-lin.predict(X_test_std)
-        
-        print("Models")
 
-        """start = datetime.now().timestamp()
+        start = datetime.now().timestamp()
+        qreg = QuantileKNN(n_neighbors=50)
+        qreg.fit(X_train_std,dif_train.values)
+        pred_difs = qreg.predict(X_test_std)
+        a=pd.DataFrame(pred_difs)
+        for col in a.columns:
+            a[col] += lin.predict(X_test_std) 
+        end = datetime.now().timestamp()
+        results = evaluate((np.exp(a)-1).values,(np.exp(y_test)-1).values)
+        results["duration"]=end-start
+        save_result([horizon,"QKNNL",results,1],f"unit_{horizon}",folder)
+
+        start = datetime.now().timestamp()
         qreg = MLPQuantile()
         qreg.fit(X_train_std,y_train)
         preds = qreg.predict(X_test_std)
@@ -94,8 +108,7 @@ for horizon in tqdm(range(1,60)):
                         1],f"unit_{horizon}",folder)
 
         start = datetime.now().timestamp()
-        ngb = NGBoost(Base=default_tree_learner, Dist=Normal, Score=MLE(), natural_gradient=True,
-                verbose=True,n_estimators=1500)
+        ngb = NGBRegressor(Dist=Normal, verbose=True,n_estimators=800)
         ngb.fit(X_train_std, y_train.values)
         Y_dists = ngb.pred_dist(X_test_std)
         a=pd.DataFrame()
@@ -109,23 +122,7 @@ for horizon in tqdm(range(1,60)):
                         "NGBOOST",
                         results,
                         1],f"unit_{horizon}",folder)
-        """
-        
-        start = datetime.now().timestamp()
-        qreg = QuantileKNN(n_neighbors=50)
-        qreg.fit(X_train_std,dif_train.values)
-        pred_difs = qreg.predict(X_test_std)
-        a=pd.DataFrame(pred_difs)
-        for col in a.columns:
-            a[col] += lin.predict(X_test_std) 
-        end = datetime.now().timestamp()
-        results = evaluate((np.exp(a)-1).values,(np.exp(y_test)-1).values)
-        results["duration"]=end-start
-        save_result([horizon,
-                        "QKNNL",
-                        results,
-                        1],f"unit_{horizon}",folder)
-"""
+
         start = datetime.now().timestamp()
         qreg = QuantileKNN(n_neighbors=50)
         qreg.fit(X_train_std,y_train.values)
@@ -202,5 +199,5 @@ for horizon in tqdm(range(1,60)):
         save_result([horizon,
                         "QGBL",
                         results,
-                        1],f"unit_{horizon}",folder)""" 
+                        1],f"unit_{horizon}",folder)
                         
