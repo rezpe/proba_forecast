@@ -25,7 +25,7 @@ from sklearn.model_selection import KFold
 
 from datetime import datetime,timedelta
 
-folder="new_data_destination_folder"
+folder="mlp_new_training"
 
 if not os.path.exists(folder):
     os.makedirs(folder)
@@ -175,7 +175,7 @@ for horizon in tqdm(range(1,60)):
                         1],f"unit_{horizon}",folder)
 
         start = datetime.now().timestamp()
-        qreg = TotalLGBQuantile(n_estimators=1000,max_depth=12)
+        qreg = TotalLGBQuantile(n_estimators=1900,max_depth=16)
         qreg.fit(X_train_std,y_train)
         preds = qreg.predict(X_test_std)
         end = datetime.now().timestamp()
@@ -187,7 +187,7 @@ for horizon in tqdm(range(1,60)):
                         1],f"unit_{horizon}",folder)
 
         start = datetime.now().timestamp()
-        qreg = TotalLGBQuantile(n_estimators=1000,max_depth=12)
+        qreg = TotalLGBQuantile(n_estimators=1900,max_depth=16)
         qreg.fit(X_train,dif_train)
         pred_difs = qreg.predict(X_test)
         a=pd.DataFrame(pred_difs)

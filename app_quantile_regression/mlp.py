@@ -7,6 +7,7 @@ from scipy import stats
 from keras.models import Sequential
 from keras.layers import Dense, LeakyReLU
 from keras.callbacks import EarlyStopping
+from keras.optimizers import Adam
 import keras.backend as K 
 
 from sklearn.model_selection import train_test_split
@@ -27,7 +28,6 @@ class MLPQuantile():
             model = Sequential()
             model.add(Dense(len(X_train[0]), input_dim=len(X_train[0]), activation=LeakyReLU(alpha=0.3)))
             model.add(Dense(int(len(X_train[0])/2), activation=LeakyReLU(alpha=0.3)))
-            model.add(Dense(int(len(X_train[0])/2), activation=LeakyReLU(alpha=0.3)))
             model.add(Dense(1, activation='linear'))
             return model
         
@@ -38,10 +38,11 @@ class MLPQuantile():
         for q in [0.022750131948179195,0.15865525393145707,0.5,0.8413447460685429,0.9772498680518208]:
             print(f"Quantile: {q}")
             model = MLPmodel()
-            model.compile(loss=lambda y,f: tilted_loss(q,y,f), optimizer='adadelta')
-            es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=50)
+            optim=Adam(learning_rate=0.001)
+            model.compile(loss=lambda y,f: tilted_loss(q,y,f), optimizer=optim)
+            es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience=10)
             history = model.fit(X_ttrain, y_ttrain, 
-                                epochs=1000, batch_size=500,  
+                                epochs=200, batch_size=200,  
                                 verbose=1,callbacks=[es],
                                 validation_data=(X_val,y_val))
             self.estimators.append(model)
