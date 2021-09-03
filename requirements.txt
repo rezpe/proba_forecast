@@ -6,8 +6,7 @@ numpy
 scipy
 lightgbm
 mlinsights
-joblib
-multiprocessing
 xgboost
-functools
-
+keras
+tensorflow
+ngboost

@@ -1,0 +1,8 @@
+We have packaged the data files used for this study. Each file is used to train and test the probabilistic forecasting models for a certain horizon: as we predict up to 72 hours in advance, we have 72 files.
+Each file contains the following columns:
+* Calendar variables: those variables indicate holiday or vacation activity. they are lagged 24hours, 48hours and 1 week before. Variables are (Calendar.Festivo.EqiNoc,
+Calendar.Festivo.FesNov, Calendar.Festivo.InmCns, Calendar.Festivo.NavAnu, Calendar.Festivo.PriVer, Calendar.Festivo.SemSan, Calendar.Festivo.VrgAgo, Calendar.NocheNav.NocheBuena, Calendar.NocheNav.NocheVieja, Calendar.OprRetorno, Calendar.OprSalida.PriNoLab, Calendar.OprSalida.Vispera, Calendar.PuenteLab)
+* CAMS european predictions: those variables indicate predictions from the CAMS institute. They were performed 24, 48 and 72 hours before. Variables are MACC.NO2.Lon35625_Lat4035_Lead0,MACC.NO2.Lon35625_Lat4035_Lead1,MACC.NO2.Lon35625_Lat4035_Lead2,MACC.NO2.Lon35625_Lat4045_Lead0,MACC.NO2.Lon35625_Lat4045_Lead1,MACC.NO2.Lon35625_Lat4045_Lead2,MACC.NO2.Lon35635_Lat4035_Lead0,MACC.NO2.Lon35635_Lat4035_Lead1,MACC.NO2.Lon35635_Lat4035_Lead2,MACC.NO2.Lon35635_Lat4045_Lead0,MACC.NO2.Lon35635_Lat4045_Lead1,MACC.NO2.Lon35635_Lat4045_Lead2 
+* N02: Those are the NO2 levels and the lagged values of NO2
+* O3: Those are the O3 levels and the lagged values of O3
+* Sinusoidal and Cosinusoidal signals: Those are periodic function as the name implies and are used by the models to learn periodicity. Variables are: c1461,c1465,c209,c2922,c4,s1461,s1465,s209,s2922,s4.
